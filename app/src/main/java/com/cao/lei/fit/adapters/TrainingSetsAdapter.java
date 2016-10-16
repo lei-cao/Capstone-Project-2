@@ -24,22 +24,32 @@ package com.cao.lei.fit.adapters;
  * SOFTWARE.
  */
 
+import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.cao.lei.fit.R;
+import com.cao.lei.fit.data.TrainingSetsContract;
+import com.cao.lei.fit.models.TrainingSet;
+import com.squareup.picasso.Picasso;
 
 public class TrainingSetsAdapter extends CursorRecyclerAdapter<SimpleViewHolder> {
 
+    Context mContext;
     private int mLayout;
     private int[] mFrom;
     private int[] mTo;
     private String[] mOriginalFrom;
 
-    public TrainingSetsAdapter (int layout, Cursor c, String[] from, int[] to) {
+    public TrainingSetsAdapter (Context context, int layout, Cursor c, String[] from, int[] to) {
         super(c);
+        mContext = context;
         mLayout = layout;
         mTo = to;
         mOriginalFrom = from;
@@ -59,8 +69,26 @@ public class TrainingSetsAdapter extends CursorRecyclerAdapter<SimpleViewHolder>
         final int[] from = mFrom;
 
         for (int i = 0; i < count; i++) {
-            holder.views[i].setText(cursor.getString(from[i]));
+            ((TextView)holder.views[i].findViewById(R.id.training_title)).setText(cursor.getString(from[1]));
+            ImageView imageView = (ImageView) holder.views[i].findViewById(R.id.thumbnail);
+            imageView.setImageResource(R.mipmap.ic_launcher);
+            Picasso.with(mContext)
+                    .load(cursor.getString(from[2]))
+                    .noFade()
+                    .into(imageView);
+
         }
+    }
+
+    public TrainingSet getItem(int position) {
+        TrainingSet ts = new TrainingSet();
+        Cursor cursor = getCursor();
+        cursor.moveToPosition(position);
+        ts.title= cursor.getString(cursor.getColumnIndex(TrainingSetsContract.TrainingsetsEntry.COLUMN_TRAININGSETS_TITLE));
+        ts.thumbnail= cursor.getString(cursor.getColumnIndex(TrainingSetsContract.TrainingsetsEntry.COLUMN_TRAININGSETS_THUMBNAIL));
+        ts.description = cursor.getString(cursor.getColumnIndex(TrainingSetsContract.TrainingsetsEntry.COLUMN_TRAININGSETS_DESCRIPTION));
+        ts.videourl = cursor.getString(cursor.getColumnIndex(TrainingSetsContract.TrainingsetsEntry.COLUMN_TRAININGSETS_VIDEO_URL));
+        return ts;
     }
 
     /**
@@ -94,14 +122,14 @@ public class TrainingSetsAdapter extends CursorRecyclerAdapter<SimpleViewHolder>
 
 class SimpleViewHolder extends RecyclerView.ViewHolder
 {
-    public TextView[] views;
+    public RelativeLayout[] views;
 
     public SimpleViewHolder (View itemView, int[] to)
     {
         super(itemView);
-        views = new TextView[to.length];
+        views = new RelativeLayout[to.length];
         for(int i = 0 ; i < to.length ; i++) {
-            views[i] = (TextView) itemView.findViewById(to[i]);
+            views[i] = (RelativeLayout) itemView.findViewById(to[i]);
         }
     }
 }

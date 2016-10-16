@@ -2,7 +2,10 @@ package com.cao.lei.fit;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Movie;
 import android.net.Uri;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -11,11 +14,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 
 import com.cao.lei.fit.adapters.TrainingSetsAdapter;
 import com.cao.lei.fit.data.TrainingSetsContract.TrainingsetsEntry;
+import com.cao.lei.fit.models.TrainingSet;
+import com.cao.lei.fit.services.FitResponses;
+import com.cao.lei.fit.services.FitServices;
+import com.cao.lei.fit.utils.ItemClickSupport;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    private Context mContext;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -41,6 +58,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         getSupportLoaderManager().initLoader(TRAININGSETS_LOADER, null, this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = getApplicationContext();
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
 
 
         mRecyclerView = (RecyclerView) findViewById(R.id.trining_sets);
@@ -53,45 +74,54 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        addLocation("haha", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("nim", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("123", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx1", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx2", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx3j", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx3", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx4", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx5", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxx5", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxa", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxb", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxc", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxd", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxe", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxf", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxg", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxh", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxi", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxgj", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxjk", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxl", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxm", "lala", "sfdsfdsf", "sdfsdfds");
-        addLocation("xxxn", "lala", "sfdsfdsf", "sdfsdfds");
-        // specify an adapter (see also next example)
-
-
-
         // First, check if the location with this city name exists in the db
-        Cursor locationCursor = getApplicationContext().getContentResolver().query(
+        final Cursor trainingSetsCursor = mContext.getContentResolver().query(
                 TrainingsetsEntry.CONTENT_URI,
-                new String[]{TrainingsetsEntry._ID, TrainingsetsEntry.COLUMN_TRAININGSETS_TITLE},
+                TRAININGSETS_COLUMNS,
                 null,
                 null,
                 null);
 
 
-        mAdapter = new TrainingSetsAdapter(R.layout.training_set_item, locationCursor, new String[]{TrainingsetsEntry.COLUMN_TRAININGSETS_TITLE}, new int[]{R.id.training_title});
+        mAdapter = new TrainingSetsAdapter(mContext, R.layout.training_set_item, trainingSetsCursor, TRAININGSETS_COLUMNS, new int[]{R.id.trainingSet});
         mRecyclerView.setAdapter(mAdapter);
+
+        FitServices service = new FitServices();
+        Call<FitResponses.TrainingSetsResponse> call = service.service.trainingSets();
+        call.enqueue(new Callback<FitResponses.TrainingSetsResponse>() {
+            @Override
+            public void onResponse(Response<FitResponses.TrainingSetsResponse> response, Retrofit retrofit) {
+                if (response.body() != null && response.body().results.size() != 0) {
+                    for (TrainingSet t : response.body().results) {
+                        addLocation(t.title, t.thumbnail, t.description, t.videourl);
+                    }
+
+                    // First, check if the location with this city name exists in the db
+                    final Cursor newTrainingSetsCursor = mContext.getContentResolver().query(
+                            TrainingsetsEntry.CONTENT_URI, TRAININGSETS_COLUMNS, null, null, null);
+
+                    ((TrainingSetsAdapter)mAdapter).swapCursor(newTrainingSetsCursor);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                String message = t.getMessage();
+                Log.d("failure", message);
+            }
+        });
+
+        ItemClickSupport.addTo(mRecyclerView)
+                .setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+                    @Override
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                        TrainingSet ts = ((TrainingSetsAdapter)mAdapter).getItem(position);
+                        Intent intent = new Intent(mContext, DetailActivity.class).putExtra(DetailActivity.DETAIL_TRAININGSET, ts);
+                        startActivity(intent);
+                    }
+                });
+
     }
 
     /**
@@ -108,16 +138,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
         // First, check if the location with this city name exists in the db
-        Cursor locationCursor = getApplicationContext().getContentResolver().query(
+        Cursor trainingSetsCursor = mContext.getContentResolver().query(
                 TrainingsetsEntry.CONTENT_URI,
                 new String[]{TrainingsetsEntry._ID},
                 TrainingsetsEntry.COLUMN_TRAININGSETS_TITLE + " = ?",
                 new String[]{title},
                 null);
 
-        if (locationCursor.moveToFirst()) {
-            int idIndex = locationCursor.getColumnIndex(TrainingsetsEntry._ID);
-            id = locationCursor.getLong(idIndex);
+        if (trainingSetsCursor.moveToFirst()) {
+            int idIndex = trainingSetsCursor.getColumnIndex(TrainingsetsEntry._ID);
+            id = trainingSetsCursor.getLong(idIndex);
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
             // First create a ContentValues object to hold the data you want to insert.
@@ -139,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             id = ContentUris.parseId(insertedUri);
         }
 
-        locationCursor.close();
+        trainingSetsCursor.close();
         // Wait, that worked?  Yes!
         return id;
     }
