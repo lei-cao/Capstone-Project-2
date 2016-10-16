@@ -18,6 +18,9 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.cao.lei.fit.models.TrainingSet;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 
 import org.w3c.dom.Text;
 
@@ -63,6 +66,17 @@ public class DetailActivity extends AppCompatActivity {
             });
 
         }
+
+
+        MobileAds.initialize(getApplicationContext(), getResources().getString(R.string.app_id));
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+//        AdRequest adRequest = new AdRequest.Builder().build();
+
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)        // All emulators
+                .addTestDevice("BB9A0A0067E1197C8C92274FAB492177")  // An example device ID
+                .build();
+        mAdView.loadAd(adRequest);
 
     }
 }

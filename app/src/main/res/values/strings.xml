@@ -2,5 +2,7 @@
     <string name="app_name">fit</string>
 
     <string name="content_authority">com.cao.lei.fit</string>
-
+    <string name="banner_ad_unit_id">ca-app-pub-6228432217892508/1409342074</string>
+    <string name="app_id">ca-app-pub-6228432217892508~8932608873</string>
+    <string name="widget_remote_content_description">Your Trainingsets~</string>
 </resources>

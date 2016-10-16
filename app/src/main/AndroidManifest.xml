@@ -2,7 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.cao.lei.fit">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -25,6 +28,19 @@
             android:syncable="true" />
 
         <activity android:name=".DetailActivity"></activity>
+
+
+        <!-- Today Widget -->
+        <receiver android:name=".widget.TodayWidgetProvider"
+            android:label="Today's Training">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_today"/>
+        </receiver>
+        <service android:name=".widget.TodayWidgetIntentService"/>
+
     </application>
 
 </manifest>

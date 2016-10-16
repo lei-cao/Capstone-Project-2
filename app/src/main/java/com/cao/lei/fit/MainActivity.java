@@ -25,6 +25,7 @@ import com.cao.lei.fit.models.TrainingSet;
 import com.cao.lei.fit.services.FitResponses;
 import com.cao.lei.fit.services.FitServices;
 import com.cao.lei.fit.utils.ItemClickSupport;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import retrofit.Call;
 import retrofit.Callback;
@@ -32,6 +33,8 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    private FirebaseAnalytics mFirebaseAnalytics;
+
     private Context mContext;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -39,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final int TRAININGSETS_LOADER = 0;
 
-    private static final String[] TRAININGSETS_COLUMNS = {
+    public static final String[] TRAININGSETS_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
             // (both have an _id column)
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = getApplicationContext();
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
@@ -117,6 +121,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     @Override
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         TrainingSet ts = ((TrainingSetsAdapter)mAdapter).getItem(position);
+
+                        Bundle bundle = new Bundle();
+                        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, ts.title);
+                        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+
                         Intent intent = new Intent(mContext, DetailActivity.class).putExtra(DetailActivity.DETAIL_TRAININGSET, ts);
                         startActivity(intent);
                     }
