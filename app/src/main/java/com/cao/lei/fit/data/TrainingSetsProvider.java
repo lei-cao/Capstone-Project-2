@@ -26,7 +26,6 @@ public class TrainingSetsProvider extends ContentProvider {
     }
 
 
-    //trainingsets.trainingsets_id = ?
     private static final String sTrainingsetsSelection =
             TrainingSetsContract.TrainingsetsEntry.TABLE_NAME+
                     "." + TrainingSetsContract.TrainingsetsEntry._ID + " = ? ";

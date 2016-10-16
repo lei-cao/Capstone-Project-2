@@ -11,7 +11,7 @@
         android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        card_view:cardCornerRadius="4dp">
+        card_view:cardCornerRadius="@dimen/cardview_default_radius">
 
         <RelativeLayout
             android:id="@+id/trainingSet"
@@ -31,6 +31,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/thumbnail"
+                android:layout_toEndOf="@id/thumbnail"
+                android:paddingStart="@dimen/image_padding"
                 android:paddingLeft="@dimen/image_padding"
                 android:textSize="@dimen/title_size"
                 android:gravity="center_vertical"
